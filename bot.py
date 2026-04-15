@@ -2,8 +2,8 @@ import yfinance as yf
 import requests
 import time
 
-TOKEN = "8571856335:AAFWGExs1m6ufjk4qCbIT7SvEBN6JBK4R04"
-CHAT_ID = "7454699794"
+TOKEN = "YOUR_TOKEN"
+CHAT_ID = "YOUR_CHAT_ID"
 
 pairs = {
     "EURUSD": "EURUSD=X",
@@ -58,6 +58,8 @@ def check_trades():
             if trade["status"] == "PENDING":
                 if trade["type"] == "BUY" and price <= trade["entry"]:
                     trade["status"] = "OPEN"
+                    trade["entry_time"] = time.time()
+
                     send(
                         f"🚨 ENTRY HIT 🚨\n"
                         f"{trade['pair']} BUY\n"
@@ -68,6 +70,8 @@ def check_trades():
 
                 elif trade["type"] == "SELL" and price >= trade["entry"]:
                     trade["status"] = "OPEN"
+                    trade["entry_time"] = time.time()
+
                     send(
                         f"🚨 ENTRY HIT 🚨\n"
                         f"{trade['pair']} SELL\n"
@@ -78,6 +82,11 @@ def check_trades():
 
             # TP / SL
             elif trade["status"] == "OPEN":
+
+                # ⛔ COOLDOWN (10 seconds after entry)
+                if time.time() - trade["entry_time"] < 10:
+                    continue
+
                 if trade["type"] == "BUY":
                     if price >= trade["tp"]:
                         trade["status"] = "WIN"
@@ -98,7 +107,8 @@ def check_trades():
                         losses += 1
                         send(f"❌ LOSS {trade['pair']}")
 
-        except:
+        except Exception as e:
+            print("Trade error:", e)
             continue
 
 # 🔥 MAIN STRATEGY
@@ -172,7 +182,8 @@ def scan_market():
                 "entry": entry,
                 "sl": sl,
                 "tp": tp,
-                "status": "PENDING"
+                "status": "PENDING",
+                "entry_time": None
             })
 
             output += (
@@ -184,7 +195,8 @@ def scan_market():
                 f"----------------------\n"
             )
 
-        except:
+        except Exception as e:
+            print("Scan error:", name, e)
             continue
 
     if output != "📊 SNIPER SIGNALS\n\n":
@@ -201,9 +213,6 @@ def send_performance():
         f"Win Rate: {round(winrate, 2)}%"
     )
 
-def send_heartbeat():
-    send("💓 Bot is alive")
-
 def run_bot():
     print("Bot started... SNIPER V2 PRO MODE")
 
@@ -215,33 +224,26 @@ def run_bot():
         try:
             now = time.time()
 
-            # 🔁 AUTO SCAN
             if now - last_scan > 600:
-                print("Running... scanning market")
+                print("Scanning market...")
                 scan_market()
                 last_scan = now
 
-            # 📊 CHECK TRADES
             check_trades()
 
-            # ❤️ HEARTBEAT
             if now - last_heartbeat > 300:
-                send("❤️ Bot is alive")
-                print("Heartbeat sent")
+                send("💓 Bot is alive")
                 last_heartbeat = now
 
-            # 📈 PERFORMANCE
             if now - last_report > 1800:
                 send_performance()
-                print("Performance sent")
                 last_report = now
 
-            # 🔥 KEEP ALIVE PRINT
-            print("Bot still running...")
+            print("Bot running...")
 
         except Exception as e:
             print("Error:", e)
 
-        time.sleep(10)  
+        time.sleep(10)
 
 run_bot()
