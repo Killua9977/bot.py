@@ -1,9 +1,11 @@
 import yfinance as yf
 import requests
 import time
+import csv
+import os
 
-TOKEN = "YOUR_TOKEN"
-CHAT_ID = "YOUR_CHAT_ID"
+TOKEN = "8571856335:AAFWGExs1m6ufjk4qCbIT7SvEBN6JBK4R04"
+CHAT_ID = "7454699794"
 
 pairs = {
     "EURUSD": "EURUSD=X",
@@ -21,6 +23,26 @@ RISK_PERCENT = 2
 trades = []
 wins = 0
 losses = 0
+
+FILE_NAME = "trades.csv"
+
+# 📁 CREATE FILE IF NOT EXISTS
+if not os.path.exists(FILE_NAME):
+    with open(FILE_NAME, mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["Pair", "Type", "Entry", "SL", "TP", "Result"])
+
+def save_trade(trade, result):
+    with open(FILE_NAME, mode="a", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow([
+            trade["pair"],
+            trade["type"],
+            trade["entry"],
+            trade["sl"],
+            trade["tp"],
+            result
+        ])
 
 def send(msg):
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
@@ -80,10 +102,9 @@ def check_trades():
                         f"TP: {trade['tp']}"
                     )
 
-            # TP / SL
             elif trade["status"] == "OPEN":
 
-                # ⛔ COOLDOWN (10 seconds after entry)
+                # ⏳ COOLDOWN
                 if time.time() - trade["entry_time"] < 10:
                     continue
 
@@ -91,24 +112,29 @@ def check_trades():
                     if price >= trade["tp"]:
                         trade["status"] = "WIN"
                         wins += 1
+                        save_trade(trade, "WIN")
                         send(f"✅ WIN {trade['pair']}")
+
                     elif price <= trade["sl"]:
                         trade["status"] = "LOSS"
                         losses += 1
+                        save_trade(trade, "LOSS")
                         send(f"❌ LOSS {trade['pair']}")
 
                 elif trade["type"] == "SELL":
                     if price <= trade["tp"]:
                         trade["status"] = "WIN"
                         wins += 1
+                        save_trade(trade, "WIN")
                         send(f"✅ WIN {trade['pair']}")
+
                     elif price >= trade["sl"]:
                         trade["status"] = "LOSS"
                         losses += 1
+                        save_trade(trade, "LOSS")
                         send(f"❌ LOSS {trade['pair']}")
 
-        except Exception as e:
-            print("Trade error:", e)
+        except:
             continue
 
 # 🔥 MAIN STRATEGY
@@ -195,8 +221,7 @@ def scan_market():
                 f"----------------------\n"
             )
 
-        except Exception as e:
-            print("Scan error:", name, e)
+        except:
             continue
 
     if output != "📊 SNIPER SIGNALS\n\n":
@@ -225,7 +250,6 @@ def run_bot():
             now = time.time()
 
             if now - last_scan > 600:
-                print("Scanning market...")
                 scan_market()
                 last_scan = now
 
