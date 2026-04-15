@@ -15,6 +15,14 @@ pairs = {
     "AUDUSD": "AUDUSD=X",
     "USDCAD": "USDCAD=X",
     "NZDUSD": "NZDUSD=X",
+    "EURGBP": "EURGBP=X",
+    "EURJPY": "EURJPY=X",
+    "GBPJPY": "GBPJPY=X",
+    "AUDJPY": "AUDJPY=X",
+    "EURAUD": "EURAUD=X",
+    "GBPAUD": "GBPAUD=X",
+    "EURCAD": "EURCAD=X",
+    "GBPCAD": "GBPCAD=X",
 }
 
 ACCOUNT_BALANCE = 100
