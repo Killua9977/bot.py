@@ -208,30 +208,40 @@ def run_bot():
     print("Bot started... SNIPER V2 PRO MODE")
 
     last_scan = 0
-    last_report = 0
     last_heartbeat = 0
+    last_report = 0
 
     while True:
         try:
             now = time.time()
 
+            # 🔁 AUTO SCAN
             if now - last_scan > 600:
+                print("Running... scanning market")
                 scan_market()
                 last_scan = now
 
+            # 📊 CHECK TRADES
             check_trades()
 
-            if now - last_heartbeat > 900:
-                send_heartbeat()
+            # ❤️ HEARTBEAT
+            if now - last_heartbeat > 300:
+                send("❤️ Bot is alive")
+                print("Heartbeat sent")
                 last_heartbeat = now
 
+            # 📈 PERFORMANCE
             if now - last_report > 1800:
                 send_performance()
+                print("Performance sent")
                 last_report = now
+
+            # 🔥 KEEP ALIVE PRINT
+            print("Bot still running...")
 
         except Exception as e:
             print("Error:", e)
 
-        time.sleep(10)
+        time.sleep(10)  
 
 run_bot()
