@@ -1,0 +1,175 @@
+# 🤖 Algorithmic Forex & Index Trading Bot
+
+A fully automated, cloud-deployed trading bot built in Python, integrated with the **Capital.com API**, running four live strategies across forex pairs and indices. Includes real-time Telegram alerts and a custom Flask monitoring dashboard.
+
+---
+
+## 🚀 Live Strategies
+
+| Instrument | Strategy | Description |
+|------------|----------|-------------|
+| **US500** | Opening Range Breakout (ORB) | Captures breakout from the first 30-min candle at market open |
+| **EURUSD** | Asian Range Breakout | Enters on London open breakout of the Asian session high/low |
+| **GBPUSD** | Asian Range Breakout | Same logic applied to cable at London open |
+| **USDJPY** | Previous Day High/Low Breakout | Enters on break of prior day's key levels |
+
+---
+
+## ⚙️ Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                  strategy_v1.py                      │
+│                                                     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐          │
+│  │  US500   │  │  EURUSD  │  │  GBPUSD  │  USDJPY  │
+│  │   ORB    │  │  Asian   │  │  Asian   │  PDH/PDL  │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └───┬──┘│
+│       └─────────────┴─────────────┴─────────────┘   │
+│                         │                            │
+│              ┌──────────▼──────────┐                 │
+│              │   Risk Manager      │                 │
+│              │  1% per trade       │                 │
+│              │  Daily loss limit   │                 │
+│              │  News filter        │                 │
+│              └──────────┬──────────┘                 │
+│                         │                            │
+│              ┌──────────▼──────────┐                 │
+│              │  Capital.com API    │                 │
+│              └─────────────────────┘                 │
+└─────────────────────────────────────────────────────┘
+         │                          │
+┌────────▼────────┐      ┌──────────▼──────────┐
+│  Telegram Bot   │      │   Flask Dashboard    │
+│  Live Alerts    │      │   Equity Curve       │
+│  Trade Updates  │      │   Open Trades        │
+│  Daily P&L      │      │   Per-pair Stats     │
+└─────────────────┘      │   Portfolio Heat     │
+                         │   Live Logs          │
+                         └─────────────────────┘
+```
+
+---
+
+## 🧠 Risk Management (Shared Across All Instruments)
+
+- **Position sizing:** 1% risk per trade, calculated dynamically from account equity
+- **Auto-moving Stop Loss:** SL moves to TP1 when TP1 is hit (trade becomes risk-free), then closes at TP2
+- **Daily loss limit:** Bot pauses if daily drawdown exceeds threshold
+- **News filter:** Skips trading around high-impact economic events
+- **Rate limiting:** Built-in sleep delays to respect API rate limits
+
+---
+
+## 📊 Flask Dashboard Features
+
+- Real-time equity curve
+- Open trades with live P&L
+- Per-pair performance statistics
+- Portfolio heat map
+- Live bot logs
+
+---
+
+## 📦 Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Language | Python 3.11 |
+| Broker API | Capital.com REST API |
+| Deployment | Railway (cloud) |
+| Alerts | Telegram Bot API |
+| Dashboard | Flask + Chart.js |
+| Version Control | GitHub |
+
+---
+
+## 🛠️ Setup & Deployment
+
+### 1. Clone the repo
+```bash
+git clone https://github.com/YOUR_USERNAME/forex-trading-bot.git
+cd forex-trading-bot
+```
+
+### 2. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Configure environment variables
+Create a `.env` file:
+```env
+CAPITAL_API_KEY=your_api_key
+CAPITAL_IDENTIFIER=your_email
+CAPITAL_PASSWORD=your_password
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_CHAT_ID=your_chat_id
+ENVIRONMENT=demo  # or live
+```
+
+### 4. Run the bot
+```bash
+python strategy_v1.py
+```
+
+### 5. Run the dashboard
+```bash
+python dashboard_server.py
+```
+
+---
+
+## ☁️ Cloud Deployment (Railway)
+
+The bot is deployed on [Railway](https://railway.app) with automatic GitHub integration:
+
+1. Push to `main` branch → Railway auto-deploys
+2. Set environment variables in Railway dashboard
+3. Bot runs 24/7 with automatic restarts
+
+---
+
+## 🔧 Known API Quirks Solved
+
+| Issue | Fix Applied |
+|-------|------------|
+| TP silently rejected | All float values cast with `float()` to avoid numpy float64 rejection |
+| SL moving not supported via API | Bot-managed SL logic implemented in Python |
+| `dealId` vs `dealReference` confusion | Correct field (`affectedDeals` dealId) used for all modifications |
+| 429 rate limit errors | Sleep delays added between API calls |
+| SL "maxvalue" errors | Pip buffer added while tracking exact TP1 internally |
+
+---
+
+## 📁 Project Structure
+
+```
+forex-trading-bot/
+├── strategy_v1.py          # Main bot — all four strategies
+├── dashboard_server.py     # Flask monitoring dashboard
+├── risk_manager.py         # Shared risk logic
+├── requirements.txt
+├── .env.example
+└── README.md
+```
+
+---
+
+## 📬 Hire Me
+
+Looking for a custom trading bot? I build:
+- Forex & crypto bots (any strategy)
+- Broker API integrations (Capital.com, Interactive Brokers, Binance, etc.)
+- Live dashboards and monitoring systems
+- Cloud deployment (Railway, AWS, VPS)
+
+📧 **[your-email@gmail.com]**
+💼 **[Your Upwork Profile Link]**
+🌐 **[Your Fiverr Gig Link]**
+
+---
+
+## ⚠️ Disclaimer
+
+This bot is for educational and personal use. Trading involves risk. Past performance does not guarantee future results.
